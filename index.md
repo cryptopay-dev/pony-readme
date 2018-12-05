@@ -1,37 +1,66 @@
-## Welcome to GitHub Pages
+# Welcome to Pony
+Pony is a small Go library that helps you rapidly create projects.
 
-You can use the [editor on GitHub](https://github.com/cryptopay-dev/pony-readme/edit/master/index.md) to maintain and preview the content for your website in Markdown files.
+## Examples
+You can look in [/example](github.com/cryptopay-dev/pony-readme) folder to find out more examples.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+### Minimal example
+```go
+package main
 
-### Markdown
+import (
+	"context"
+	"net/http"
+	
+	"github.com/cryptopay-dev/pony"
+	"github.com/cryptopay-dev/pony/digger"
+	"github.com/cryptopay-dev/pony/servers"
+	
+	"go.uber.org/zap"
+)
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+func newApp() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`Hello, world!`))
+	})
+}
 
-```markdown
-Syntax highlighted code block
+func main() {
+	p, err := pony.New(pony.Params{
+		Name:               "minimal",
+		LoadDefaultModules: true,
+	}, digger.Module{
+		{CreateFunc: newApp},
+	})
+	pony.FailOnError(err)
+	pony.FailOnError(p.RunFunc(func(log *zap.SugaredLogger, srv *servers.Container, ctx context.Context) error {
+		log.Info("Stargin servers")
+		srv.Servers().Start()
 
-# Header 1
-## Header 2
-### Header 3
+		<-ctx.Done()
 
-- Bulleted
-- List
+		log.Info("Stopping servers")
+		srv.Servers().Stop()
 
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+		return nil
+	}))
+}
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+## Modules
+Pony have a list of useful modules based on:
+- Configuration **Viper**
+- Logging **zap**
+- PostgreSQL **go-pg**
+- Sentry **raven**
+- Web **echo**
+- Workers **chapsuk/worker**
 
-### Jekyll Themes
+### Configuration
+### PostgreSQL
+### Sentry
+### Workers
+### Web server
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/cryptopay-dev/pony-readme/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+## Cookbook
+### Twirp Service
